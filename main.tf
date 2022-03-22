@@ -3,7 +3,7 @@ terraform {
   required_providers {
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = ">= 2.0.1"
+      version = ">= 2.8.0"
     }
     powerdns = {
       source  = "pan-net/powerdns"
@@ -23,7 +23,7 @@ locals {
   })
 }
 
-resource "kubernetes_ingress" "ingress" {
+resource "kubernetes_ingress_v1" "ingress" {
   metadata {
     namespace = var.namespace
     name      = var.object_prefix
@@ -44,8 +44,12 @@ resource "kubernetes_ingress" "ingress" {
           path {
             path = "/"
             backend {
-              service_name = var.service_name
-              service_port = var.service_port
+              service {
+                name = var.service_name
+                port {
+                  number = var.service_port
+                }
+              }
             }
           }
         }
@@ -83,7 +87,7 @@ resource "powerdns_record" "ingress" {
   name     = format("%s.", each.value)
   type     = "A"
   ttl      = var.dns_record_ttl
-  records  = [kubernetes_ingress.ingress.status.0.load_balancer.0.ingress.0.ip]
+  records  = [kubernetes_ingress_v1.ingress.status.0.load_balancer.0.ingress.0.ip]
 
   provisioner "local-exec" {
     when    = destroy
@@ -95,7 +99,7 @@ resource "icinga2_host" "host" {
   for_each = var.monitoring_enabled ? length(var.monitoring_host) > 0 ? toset(
   flatten([var.monitoring_host])) : toset(flatten([var.dns_fqdn])) : []
   hostname      = each.value
-  address       = kubernetes_ingress.ingress.status.0.load_balancer.0.ingress.0.ip
+  address       = kubernetes_ingress_v1.ingress.status.0.load_balancer.0.ingress.0.ip
   check_command = "http"
   vars = merge({
     http_vhost  = each.value
