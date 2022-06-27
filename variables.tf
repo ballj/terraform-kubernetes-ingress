@@ -69,33 +69,3 @@ variable "labels" {
   description = "labels to add to ingress"
   default     = {}
 }
-
-variable "monitoring_enabled" {
-  description = "Enable monitoring for the service"
-  type        = bool
-  default     = true
-}
-
-variable "monitoring_host" {
-  type        = any
-  description = "Override default FQDN for monitoring"
-  default     = []
-}
-
-variable "monitoring_uri" {
-  type        = string
-  description = "The request URI for GET or POST"
-  default     = "/"
-}
-
-variable "monitoring_expect" {
-  type        = string
-  description = "Comma-delimited list of strings, at least one of them is expected in the first (status) line of the server response"
-  default     = "200 OK"
-}
-
-variable "monitoring_vars" {
-  type        = map(string)
-  description = "List of additional vars to pass to monitoring"
-  default     = {}
-}

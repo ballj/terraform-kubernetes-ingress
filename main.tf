@@ -94,17 +94,3 @@ resource "powerdns_record" "ingress" {
     command = "sleep 2"
   }
 }
-
-resource "icinga2_host" "host" {
-  for_each = var.monitoring_enabled ? length(var.monitoring_host) > 0 ? toset(
-  flatten([var.monitoring_host])) : toset(flatten([var.dns_fqdn])) : []
-  hostname      = each.value
-  address       = kubernetes_ingress_v1.ingress.status.0.load_balancer.0.ingress.0.ip
-  check_command = "http"
-  vars = merge({
-    http_vhost  = each.value
-    http_uri    = var.monitoring_uri
-    http_ssl    = var.tls_enabled ? true : false
-    http_expect = var.monitoring_expect
-  }, var.monitoring_vars)
-}
