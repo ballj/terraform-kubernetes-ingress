@@ -73,7 +73,11 @@ resource "kubernetes_secret" "ingress" {
     labels    = merge(var.labels, local.common_labels)
   }
   lifecycle {
-    ignore_changes = [metadata[0].annotations, data]
+    ignore_changes = [
+      metadata[0].annotations,
+      data,
+      metadata[0].labels["controller.cert-manager.io/fao"]
+    ]
   }
   provisioner "local-exec" {
     when    = destroy
